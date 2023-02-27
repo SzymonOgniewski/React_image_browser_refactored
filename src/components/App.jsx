@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Notiflix from 'notiflix';
 import { fetchImages } from './api/fetchImages';
 import { Searchbar } from './Searchbar/Searchbar';
@@ -18,7 +18,6 @@ export const App = () => {
     try {
       const response = await fetchImages(searchQueryTrimed, page);
       setLoadingStatus(false);
-
       if (response.totalHits === 0) {
         Notiflix.Notify.failure('Something went wrong, try again.');
         return;
@@ -30,7 +29,6 @@ export const App = () => {
         tags: img.tags,
       }));
       const imgsArr = [...fetchedImages, ...images];
-      console.log(imgsArr);
       setFetchedImages(imgsArr);
       return response;
     } catch (error) {
@@ -38,35 +36,32 @@ export const App = () => {
     }
   };
 
-  const handleSubmit = (e, query) => {
+  const handleSubmit = async (e, query) => {
     e.preventDefault();
     setFetchedImages([]);
     setCurrentSearch(query);
     setTotalHits(0);
     setPage(1);
-    const data = async () => {
-      const response = await handleFetchImages(query);
-      console.log(query);
-      setTotalHits(response.totalHits);
-      if (response.totalHits === 0) {
-        Notiflix.Notify.failure(
-          'Cannot find any images with this search query, try again.'
-        );
-        return await response;
-      }
-      Notiflix.Notify.success(`${response.totalHits} images found`);
-      const perPage = 12;
-      const totalPagesAmount = Math.ceil(response.totalHits / perPage);
-      setTotalPages(totalPagesAmount);
-    };
-    data();
+    const data = await handleFetchImages(query);
+    if (data) {
+      setTotalHits(data.totalHits);
+    } else return;
   };
+
+  useEffect(() => {
+    if (totalHits === 0) return;
+    const totalPagesAmount = Math.ceil(totalHits / 12);
+    setTotalPages(totalPagesAmount);
+    Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
+  }, [totalHits]);
 
   const handleLoadMore = () => {
     if (page < totalPages) {
       setPage(page + 1);
       handleFetchImages(currentSearch);
     }
+
+    console.log(page);
   };
 
   return (
