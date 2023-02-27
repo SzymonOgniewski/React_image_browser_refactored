@@ -13,27 +13,32 @@ export const App = () => {
   const [loadingStatus, setLoadingStatus] = useState(false);
 
   const handleFetchImages = async currentSearch => {
-    setLoadingStatus(true);
-    const searchQueryTrimed = await currentSearch.trim();
-    try {
-      const response = await fetchImages(searchQueryTrimed, page);
-      setLoadingStatus(false);
-      if (response.totalHits === 0) {
-        Notiflix.Notify.failure('Something went wrong, try again.');
-        return;
+    const searchQueryTrimed = currentSearch.trim();
+    if (currentSearch.length !== 0) {
+      setLoadingStatus(true);
+
+      try {
+        const response = await fetchImages(searchQueryTrimed, page);
+        setTotalHits(response.totalHits);
+
+        setLoadingStatus(false);
+        if (response.totalHits === 0) {
+          Notiflix.Notify.failure('Something went wrong, try again.');
+          return;
+        }
+        const images = response.hits.map(img => ({
+          id: img.id,
+          webformatURL: img.webformatURL,
+          largeImageURL: img.largeImageURL,
+          tags: img.tags,
+        }));
+        const imgsArr = [...fetchedImages, ...images];
+        setFetchedImages(imgsArr);
+        return response;
+      } catch (error) {
+        console.log(error);
       }
-      const images = response.hits.map(img => ({
-        id: img.id,
-        webformatURL: img.webformatURL,
-        largeImageURL: img.largeImageURL,
-        tags: img.tags,
-      }));
-      const imgsArr = [...fetchedImages, ...images];
-      setFetchedImages(imgsArr);
-      return response;
-    } catch (error) {
-      console.log(error);
-    }
+    } else return;
   };
 
   const handleSubmit = async (e, query) => {
@@ -42,27 +47,24 @@ export const App = () => {
     setCurrentSearch(query);
     setTotalHits(0);
     setPage(1);
-    const data = await handleFetchImages(query);
-    if (data) {
-      setTotalHits(data.totalHits);
-    } else return;
   };
-
+  const handleLoadMore = () => {
+    if (page < totalPages) {
+      setPage(page + 1);
+    }
+  };
+  useEffect(() => {
+    const fetch = async () => {
+      handleFetchImages(currentSearch);
+    };
+    fetch();
+  }, [page, currentSearch]);
   useEffect(() => {
     if (totalHits === 0) return;
     const totalPagesAmount = Math.ceil(totalHits / 12);
     setTotalPages(totalPagesAmount);
     Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
   }, [totalHits]);
-
-  const handleLoadMore = () => {
-    if (page < totalPages) {
-      setPage(page + 1);
-      handleFetchImages(currentSearch);
-    }
-
-    console.log(page);
-  };
 
   return (
     <div>
