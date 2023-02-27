@@ -55,7 +55,7 @@ export const App = () => {
   };
   useEffect(() => {
     const fetch = async () => {
-      handleFetchImages(currentSearch);
+      await handleFetchImages(currentSearch);
     };
     fetch();
   }, [page, currentSearch]);
