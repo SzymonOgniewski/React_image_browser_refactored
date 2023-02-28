@@ -8,18 +8,32 @@ export const App = () => {
   const [fetchedImages, setFetchedImages] = useState([]);
   const [currentSearch, setCurrentSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [totalHits, setTotalHits] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [loadingStatus, setLoadingStatus] = useState(false);
 
-  const handleFetchImages = async currentSearch => {
-    const searchQueryTrimed = currentSearch.trim();
-    if (currentSearch.length !== 0) {
+  const handleSubmit = async (e, query) => {
+    e.preventDefault();
+    if (query === currentSearch) return;
+    setFetchedImages([]);
+    setCurrentSearch(query);
+    setPage(1);
+  };
+  const handleLoadMore = () => {
+    if (page < totalPages) {
+      setPage(page + 1);
+    }
+  };
+  useEffect(() => {
+    if (currentSearch.length === 0) return;
+    const handleFetchImages = async () => {
       setLoadingStatus(true);
-
       try {
-        const response = await fetchImages(searchQueryTrimed, page);
-        setTotalHits(response.totalHits);
+        const response = await fetchImages(currentSearch, page);
+        const perPage = 12;
+        setTotalPages(Math.ceil(response.totalHits / perPage));
+        Notiflix.Notify.success(
+          `Hooray! We found ${response.totalHits} images.`
+        );
 
         setLoadingStatus(false);
         if (response.totalHits === 0) {
@@ -32,52 +46,25 @@ export const App = () => {
           largeImageURL: img.largeImageURL,
           tags: img.tags,
         }));
-        const imgsArr = [...fetchedImages, ...images];
-        setFetchedImages(imgsArr);
+        setFetchedImages(state => [...state, ...images]);
         return response;
       } catch (error) {
         console.log(error);
       }
-    } else return;
-  };
-
-  const handleSubmit = async (e, query) => {
-    e.preventDefault();
-    setFetchedImages([]);
-    setCurrentSearch(query);
-    setTotalHits(0);
-    setPage(1);
-  };
-  const handleLoadMore = () => {
-    if (page < totalPages) {
-      setPage(page + 1);
-    }
-  };
-  useEffect(() => {
-    const fetch = async () => {
-      await handleFetchImages(currentSearch);
     };
-    fetch();
+    handleFetchImages();
   }, [page, currentSearch]);
-  useEffect(() => {
-    if (totalHits === 0) return;
-    const totalPagesAmount = Math.ceil(totalHits / 12);
-    setTotalPages(totalPagesAmount);
-    Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
-  }, [totalHits]);
 
   return (
     <div>
       <Searchbar onSubmit={handleSubmit} />
       {loadingStatus && <Loader />}
-      {totalHits !== 0 && (
-        <ImageGallery
-          images={fetchedImages}
-          page={page}
-          totalPages={totalPages}
-          onLoadMore={handleLoadMore}
-        />
-      )}
+      <ImageGallery
+        images={fetchedImages}
+        page={page}
+        totalPages={totalPages}
+        onLoadMore={handleLoadMore}
+      />
     </div>
   );
 };
