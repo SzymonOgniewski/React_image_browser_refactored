@@ -4,6 +4,7 @@ import { fetchImages } from './api/fetchImages';
 import { Searchbar } from './Searchbar/Searchbar';
 import { Loader } from './Loader/Loader';
 import { ImageGallery } from './ImageGallery/ImageGallery';
+import { params } from './api/fetchImages';
 export const App = () => {
   const [fetchedImages, setFetchedImages] = useState([]);
   const [currentSearch, setCurrentSearch] = useState('');
@@ -29,8 +30,7 @@ export const App = () => {
       setLoadingStatus(true);
       try {
         const response = await fetchImages(currentSearch, page);
-        const perPage = 12;
-        setTotalPages(Math.ceil(response.totalHits / perPage));
+        setTotalPages(Math.ceil(response.totalHits / params.perPage));
         Notiflix.Notify.success(
           `Hooray! We found ${response.totalHits} images.`
         );

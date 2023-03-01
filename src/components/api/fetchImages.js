@@ -1,5 +1,5 @@
 import axios from 'axios';
-const params = {
+export const params = {
   url: 'https://pixabay.com/api/',
   key: '32051975-6abf71968f2bd4c1ae7afccaf',
   imageType: 'photo',
