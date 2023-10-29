@@ -1,7 +1,8 @@
 # [React image browser](https://szymonogniewski.github.io/React_image_browser/)
 
 This is an image browser made using [Pixabay API](https://pixabay.com/api/).
-This version is refactored to [react-hooks](https://react.dev/learn#using-hooks)
+
+This version is refactored to [react-hooks](https://react.dev/learn#using-hooks).
 
 ## Technologies
 
